@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title|default:"Форма" }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-8">
+        <div class="card border-0 shadow-xl h-100">
+            <!-- ✅ ШАПКА -->
+            <div class="card-header bg-primary text-white py-4 border-0">
+                <h3 class="mb-0 fw-bold">{{ title|default:"Операция" }}</h3>
+            </div>
+
+            <div class="card-body p-5">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <!-- ✅ Дата — ЛЕЙБЛ СВЕРХУ -->
+                    <div class="form-label fw-semibold mb-2">
+                        <label for="{{ form.date.id_for_label }}" class="">Дата</label>
+                        <div class="form-control form-control-lg">{{ form.date }}</div>
+                    </div>
+
+                    <!-- ✅ Продукт/Материал + Количество -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label for="{% if form.produced_qty %}{{ form.produced_qty.id_for_label }}{% else %}{{ form.quantity.id_for_label }}{% endif %}" class="form-label fw-semibold mb-2">
+                                    {% if form.produced_qty %}Произведено{% else %}Количество{% endif %}
+                                </label>
+                                <div class="form-control form-control-lg">
+                                    {% if form.produced_qty %}{{ form.produced_qty }}{% else %}{{ form.quantity }}{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="">
+                                <label for="{% if form.product %}{{ form.product.id_for_label }}{% elif form.material %}{{ form.material.id_for_label }}{% endif %}" class="form-label fw-semibold mb-2">
+                                    {% if form.product %}Продукт{% else %}Материал{% endif %}
+                                </label>
+                                <div class="form-control form-control-lg">
+                                    {% if form.product %}{{ form.product }}{% elif form.material %}{{ form.material }}{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ✅ Локации -->
+                    <div class="row g-4 mb-5">
+                        {% if form.location %}
+                            <div class="col-lg-6">
+                                <div class="mb-4">
+                                    <label for="{{ form.location.id_for_label }}" class="form-label fw-semibold mb-2">Склад</label>
+                                    <div class="form-control form-control-lg">{{ form.location }}</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if form.from_location %}
+                            <div class="col-lg-6">
+                                <div class="mb-4">
+                                    <label for="{{ form.from_location.id_for_label }}" class="form-label fw-semibold mb-2">Откуда</label>
+                                    <div class="form-control form-control-lg">{{ form.from_location }}</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if form.to_location %}
+                            <div class="col-lg-6">
+                                <div class="mb-4">
+                                    <label for="{{ form.to_location.id_for_label }}" class="form-label fw-semibold mb-2">Куда</label>
+                                    <div class="form-control form-control-lg">{{ form.to_location }}</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- ✅ Дополнительные поля -->
+                    {% if form.supplier %}
+                        <div class="mb-4">
+                            <label for="{{ form.supplier.id_for_label }}" class="form-label fw-semibold mb-2">Поставщик</label>
+                            <div class="form-control form-control-lg">{{ form.supplier }}</div>
+                        </div>
+                    {% endif %}
+                    {% if form.unit_price %}
+                        <div class="mb-4">
+                            <label for="{{ form.unit_price.id_for_label }}" class="form-label fw-semibold mb-2">Цена (₽)</label>
+                            <div class="form-control form-control-lg">{{ form.unit_price }}</div>
+                        </div>
+                    {% endif %}
+                    {% if form.wb_shipment_number %}
+                        <div class="mb-4">
+                            <label for="{{ form.wb_shipment_number.id_for_label }}" class="form-label fw-semibold mb-2">№ Отгрузки</label>
+                            <div class="form-control form-control-lg">{{ form.wb_shipment_number }}</div>
+                        </div>
+                    {% endif %}
+
+                    <!-- ✅ Итого (закупки) -->
+                    {% if form.unit_price %}
+                    <div class="mb-5">
+                        <label class="form-label fw-bold fs-4 mb-3">Итого:</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-success text-white border-0"><i class="fas fa-ruble-sign"></i></span>
+                            <input type="text" class="form-control border-start-0 fw-bold fs-3 text-success bg-transparent" id="total_amount" readonly value="0 ₽">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- ✅ Кнопки -->
+                    <div class="d-flex gap-3 justify-content-end">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 shadow-lg">
+                            <i class="fas fa-save me-2"></i>Сохранить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const qtyField = document.getElementById('id_quantity') || document.getElementById('id_produced_qty');
+    const priceField = document.getElementById('id_unit_price');
+    const totalField = document.getElementById('total_amount');
+    if (qtyField && priceField && totalField) {
+        const calc = () => totalField.value = ((parseFloat(qtyField.value)||0) * (parseFloat(priceField.value)||0)).toLocaleString('ru-RU') + ' ₽';
+        qtyField.addEventListener('input', calc);
+        priceField.addEventListener('input', calc);
+        calc();
+    }
+});
+</script>
+{% endblock %}

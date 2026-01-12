@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>📦 Твои товары WB</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if products %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Артикул</th>
+                        <th>Название</th>
+                        <th>Остаток</th>
+                        <th>Склад</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ product.vendorCode|default:"—" }}</td>
+                        <td>{{ product.name|default:"—" }}</td>
+                        <td><strong>{{ product.amount|default:"0" }}</strong></td>
+                        <td>{{ product.warehouseName|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted">Всего товаров: <strong>{{ count }}</strong></p>
+    {% else %}
+        <div class="alert alert-warning">
+            <h4>⚠️ Товары не найдены</h4>
+            <p>Проверь:</p>
+            <ul>
+                <li>Правильность WB токена</li>
+                <li>Доступ к API</li>
+                <li>Наличие товаров на складах</li>
+            </ul>
+            <a href="{% url 'wb_profile' %}" class="btn btn-primary">← Назад к настройкам</a>
+        </div>
+    {% endif %}
+
+    <hr>
+    <a href="{% url 'wb_profile' %}" class="btn btn-secondary">← Назад</a>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">🏠 Dashboard</a>
+</div>
+{% endblock %}

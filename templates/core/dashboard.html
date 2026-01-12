@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Дашборд{% endblock %}
+
+{% block content %}
+<!-- Элегантный заголовок БЕЗ logout -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 fw-bold text-dark mb-1">
+            <i class="fas fa-tachometer-alt me-2 text-muted"></i>
+            Дашборд
+        </h2>
+        <small class="text-muted">Обзор ключевых показателей</small>
+    </div>
+    <!-- ✅ УБРАНО: badge + logout -->
+</div>
+
+<!-- Компактная карточка Остатки -->
+<div class="row g-3 mb-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card h-100 border-0 shadow-sm hover-lift">
+            <div class="card-body py-4">
+                <div class="d-flex align-items-center">
+                    <div class="bg-success bg-opacity-10 p-3 rounded-3 me-3">
+                        <i class="fas fa-warehouse text-success fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1 fw-semibold text-dark">Остатки материалов и продукции</h5>
+                        <p class="mb-2 text-muted small">
+                            {{ total_products|floatformat:0 }} шт продукции • {{ total_materials|floatformat:0 }} ед. материалов
+                        </p>
+                    </div>
+                </div>
+                <a href="{% url 'wb_stocks' %}" class="btn btn-outline-success btn-sm px-4 mt-2">
+                    <i class="fas fa-arrow-right me-1"></i>Подробнее
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Утонченные KPI (БЕЗ ИЗМЕНЕНИЙ) -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-semibold text-dark">
+                        <i class="fas fa-chart-line me-2 text-muted fs-5"></i>
+                        Ключевые показатели
+                    </h6>
+                    <small class="text-muted">{{ now|date:"d.m.Y H:i" }}</small>
+                </div>
+            </div>
+            <div class="card-body pt-3">
+                <div class="row g-4 text-center">
+                    <!-- Продукция -->
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="p-3">
+                            <h4 class="fw-bold text-primary mb-1">{{ total_products|floatformat:0 }}</h4>
+                            <p class="text-muted mb-1 small">Готовой продукции</p>
+                            <small class="text-success">
+                                <i class="fas fa-check-circle me-1"></i>В наличии
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Материалы -->
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="p-3">
+                            <h4 class="fw-bold text-success mb-1">{{ total_materials|floatformat:0 }}</h4>
+                            <p class="text-muted mb-1 small">Материалов</p>
+                            {% if critical_materials > 0 %}
+                                <small class="text-danger">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    {{ critical_materials }} критично
+                                </small>
+                            {% else %}
+                                <small class="text-success">
+                                    <i class="fas fa-check-circle me-1"></i>Всё в норме
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Критично -->
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="p-3">
+                            <h4 class="fw-bold text-warning mb-1">{{ critical_materials }}</h4>
+                            <p class="text-muted mb-1 small">Материалов закончилось</p>
+                            <div class="progress mt-2" style="height: 6px;">
+                                {% if critical_materials > 0 %}
+                                    <div class="progress-bar bg-warning" style="width: 30%"></div>
+                                {% else %}
+                                    <div class="progress-bar bg-success" style="width: 100%"></div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Статус -->
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="p-3">
+                            <h4 class="mb-1">
+                                <span class="text-{{ status_color }} fs-2">{{ status_icon }}</span>
+                            </h4>
+                            <p class="text-muted mb-2 small">Общий статус</p>
+                            <div class="badge bg-{{ status_color }} px-3 py-2">
+                                {{ status_icon }} {{ status_text|default:"Стабильно" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

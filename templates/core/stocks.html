@@ -1,0 +1,204 @@
+<!-- templates/core/stocks.html -->
+{% extends 'base.html' %}
+
+{% block title %}Остатки{% endblock %}
+
+{% block content %}
+<!-- Элегантный заголовок -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 fw-bold text-dark mb-1">
+            <i class="fas fa-warehouse me-2 text-muted"></i>
+            Остатки материалов и продукции
+        </h2>
+        <small class="text-muted">
+            Общий запас: {{ total_materials|floatformat:0 }} ед. материалов •
+            {{ total_products|floatformat:0 }} шт. продукции
+        </small>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <form method="get" class="d-flex gap-2">
+            <select name="location" class="form-select form-select-sm" style="width: 200px;">
+                <option value="">Все локации</option>
+                {% for loc in locations %}
+                    <option value="{{ loc.id }}" {% if loc.id|stringformat:"s" == selected_location %}selected{% endif %}>
+                        {{ loc.name }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-outline-primary btn-sm px-3">
+                <i class="fas fa-filter"></i>
+            </button>
+        </form>
+        <a href="{% url 'wb_stocks' %}" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="fas fa-refresh"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Компактные KPI карточки -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 border-0 shadow-sm bg-success bg-opacity-10 text-success hover-lift">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-success bg-opacity-20 p-2 rounded-2 me-3">
+                        <i class="fas fa-boxes fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-semibold">{{ total_products|floatformat:0 }}</h5>
+                        <small>Готовой продукции</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 border-0 shadow-sm bg-info bg-opacity-10 text-info hover-lift">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-info bg-opacity-20 p-2 rounded-2 me-3">
+                        <i class="fas fa-cubes fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-semibold">{{ total_materials|floatformat:0 }}</h5>
+                        <small>Материалов</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 border-0 shadow-sm bg-warning bg-opacity-10 text-warning hover-lift">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-warning bg-opacity-20 p-2 rounded-2 me-3">
+                        <i class="fas fa-exclamation-triangle fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-semibold">{{ critical_materials }}</h5>
+                        <small>Критично</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 border-0 shadow-sm bg-danger bg-opacity-10 text-danger hover-lift">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-danger bg-opacity-20 p-2 rounded-2 me-3">
+                        <i class="fas fa-chart-pie fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-semibold">{{ product_stocks.count }}</h5>
+                        <small>Позиций</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Материалы - компактная таблица -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-2">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fas fa-cubes me-2 text-muted"></i>Материалы
+                    <span class="badge bg-secondary ms-2">{{ material_stocks.count }}</span>
+                </h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="border-0 fw-semibold small py-3">Материал</th>
+                            <th class="border-0 fw-semibold small py-3">Тип</th>
+                            <th class="border-0 fw-semibold small py-3">Локация</th>
+                            <th class="border-0 fw-semibold small py-3">Остаток</th>
+                            <th class="border-0 fw-semibold small py-3">Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for ms in material_stocks %}
+                        <tr class="align-middle {% if ms.quantity == 0 %}table-danger{% elif ms.quantity < 10 %}table-warning{% endif %}">
+                            <td class="fw-medium">{{ ms.material.name }}</td>
+                            <td><span class="badge bg-light text-dark small px-2 py-1">{{ ms.material.get_type_display }}</span></td>
+                            <td class="small text-muted">{{ ms.location.name }}</td>
+                            <td>
+                                <span class="fw-bold fs-6">{{ ms.quantity|floatformat:2 }}</span>
+                                <small class="text-muted ms-1">{{ ms.material.unit }}</small>
+                            </td>
+                            <td>
+                                {% if ms.quantity == 0 %}
+                                    <span class="badge bg-danger px-2 py-1">Нет</span>
+                                {% elif ms.quantity < 10 %}
+                                    <span class="badge bg-warning px-2 py-1">Мало</span>
+                                {% else %}
+                                    <span class="badge bg-success px-2 py-1">OK</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center py-4 text-muted">Нет данных о материалах</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Продукция -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-2">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fas fa-box me-2 text-muted"></i>Готовая продукция
+                    <span class="badge bg-secondary ms-2">{{ product_stocks.count }}</span>
+                </h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="border-0 fw-semibold small py-3">Товар</th>
+                            <th class="border-0 fw-semibold small py-3">WB артикул</th>
+                            <th class="border-0 fw-semibold small py-3">Локация</th>
+                            <th class="border-0 fw-semibold small py-3">Остаток</th>
+                            <th class="border-0 fw-semibold small py-3">Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for ps in product_stocks %}
+                        <tr class="align-middle {% if ps.quantity < 5 %}table-danger{% elif ps.quantity < 20 %}table-warning{% endif %}">
+                            <td class="fw-medium">{{ ps.product.name }}</td>
+                            <td><code class="small">{{ ps.product.wb_article|default:"-" }}</code></td>
+                            <td class="small text-muted">{{ ps.location.name }}</td>
+                            <td>
+                                <span class="fw-bold fs-6">{{ ps.quantity|floatformat:0 }}</span>
+                                <small class="text-muted ms-1">шт</small>
+                            </td>
+                            <td>
+                                {% if ps.quantity < 5 %}
+                                    <span class="badge bg-danger px-2 py-1">Критично</span>
+                                {% elif ps.quantity < 20 %}
+                                    <span class="badge bg-warning px-2 py-1">Низко</span>
+                                {% else %}
+                                    <span class="badge bg-success px-2 py-1">OK</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center py-4 text-muted">Нет данных о продукции</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

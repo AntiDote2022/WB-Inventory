@@ -1,0 +1,19 @@
+<!-- templates/core/reports.html -->
+{% extends 'core/base_reports.html' %}
+
+{% block report_content %}
+    <!-- Динамический контент в зависимости от типа отчёта -->
+    {% if report_type == 'overview' %}
+        {% include 'core/reports/overview.html' %}
+    {% elif report_type == 'purchases' %}
+        {% include 'core/reports/purchases.html' %}
+    {% elif report_type == 'production' %}
+        {% include 'core/reports/production.html' %}
+    {% elif report_type == 'shipments' %}
+        {% include 'core/reports/shipments.html' %}
+    {% elif report_type == 'stocks' %}
+        {% include 'core/reports/stocks.html' %}
+    {% elif report_type == 'financial' %}
+        {% include 'core/reports/financial.html' %}
+    {% endif %}
+{% endblock %}
